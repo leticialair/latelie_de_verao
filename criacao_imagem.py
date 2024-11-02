@@ -18,14 +18,15 @@ class ImageCreation:
         background.paste(sticker, position, sticker)
         return
 
-    def create_object(self, background: Image.Image):
+    def create_object(self, background: Image.Image) -> ImageDraw.ImageDraw:
         return ImageDraw.Draw(background)
 
     def get_font(self, path: str, size: int):
         return ImageFont.truetype(path, size)
 
     def insert_title(self, object, position: tuple, text, font):
-        return object.text(position, text, fill="white", font=font)
+        object.text(position, text, fill="white", font=font)
+        return
 
     def save(
         self,
@@ -45,3 +46,6 @@ if __name__ == "__main__":
     image.paste_sticker(background, sticker_conflito, (20, 50))
     image.paste_sticker(background, sticker_criacao_personagem, (10, 70))
     object_image = image.create_object(background)
+    font = image.get_font("04font.ttf", 80)
+    image.insert_title(object_image, (80, 50), "Fulano de Tal", font)
+    image.save(background)
