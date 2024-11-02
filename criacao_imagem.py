@@ -9,8 +9,11 @@ class ImageCreation:
     def get_background(self, path: str = "imagem_base.png") -> Image.Image:
         return Image.open(path).convert("RGBA")
 
-    def get_sticker(self, path: str) -> Image.Image:
-        return Image.open(path).convert("RGBA")
+    def get_sticker(self, path: str, size: tuple = ()) -> Image.Image:
+        sticker = Image.open(path).convert("RGBA")
+        if len(size) > 0:
+            sticker = sticker.resize(size, Image.LANCZOS)
+        return sticker
 
     def paste_sticker(
         self, background: Image.Image, sticker: Image.Image, position: tuple
@@ -41,11 +44,27 @@ class ImageCreation:
 if __name__ == "__main__":
     image = ImageCreation()
     background = image.get_background()
-    sticker_conflito = image.get_sticker("sticker_conflito.png")
-    sticker_criacao_personagem = image.get_sticker("sticker_criacao_personagem.png")
-    image.paste_sticker(background, sticker_conflito, (20, 50))
-    image.paste_sticker(background, sticker_criacao_personagem, (10, 70))
+    sticker_conflito = image.get_sticker("sticker_conflito.png", size=(108, 192))
+    sticker_criacao_personagem = image.get_sticker(
+        "sticker_criacao_personagem.png", size=(108, 192)
+    )
+
+    width_background, height_background = background.size
+    top_left = (0, 0)
+    center_sticker_conflito = (
+        (width_background - sticker_conflito.width) // 2,
+        (height_background - sticker_conflito.height) // 2,
+    )
+    bottom_right_sticker_criacao_personagem = (
+        width_background - sticker_criacao_personagem.width,
+        height_background - sticker_criacao_personagem.height,
+    )
+
+    image.paste_sticker(background, sticker_conflito, center_sticker_conflito)
+    image.paste_sticker(
+        background, sticker_criacao_personagem, bottom_right_sticker_criacao_personagem
+    )
     object_image = image.create_object(background)
     font = image.get_font("04font.ttf", 80)
-    image.insert_title(object_image, (80, 50), "Fulano de Tal", font)
+    image.insert_title(object_image, (486, 432), "Fulano de Tal", font)
     image.save(background)
