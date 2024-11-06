@@ -44,9 +44,9 @@ class ImageCreation:
 if __name__ == "__main__":
     image = ImageCreation()
     background = image.get_background()
-    sticker_conflito = image.get_sticker("sticker_conflito.png", size=(108, 192))
+    sticker_conflito = image.get_sticker("sticker_conflito.png", size=(432, 664))
     sticker_criacao_personagem = image.get_sticker(
-        "sticker_criacao_personagem.png", size=(108, 192)
+        "sticker_criacao_personagem.png", size=(432, 768)
     )
 
     width_background, height_background = background.size
@@ -66,5 +66,8 @@ if __name__ == "__main__":
     )
     object_image = image.create_object(background)
     font = image.get_font("04font.ttf", 80)
-    image.insert_title(object_image, (486, 432), "Fulano de Tal", font)
+    text_width, _ = font.getsize("Fulano de Tal")
+    image.insert_title(
+        object_image, ((background.width - text_width), 10), "Fulano de Tal", font
+    )
     image.save(background)
