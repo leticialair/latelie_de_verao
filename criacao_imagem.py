@@ -1,28 +1,14 @@
-import os
 import pandas as pd
 import requests
-from class_mail import Mail
 from PIL import Image, ImageDraw, ImageFont
 from unidecode import unidecode
 
-email = "contato@lalivro.com"
-senha = ""
-
-conexao = Mail(
-    "smtp.gmail.com",
-    # "smtp.office365.com",
-    587,
-    email,
-    senha,
-)
-
 
 class ImageCreation:
-
     def __init__(self):
         pass
 
-    def get_background(self, path: str = "imagem_base_1.jpeg") -> Image.Image:
+    def get_background(self, path) -> Image.Image:
         return Image.open(path).convert("RGBA")  # Ensure it's in RGBA mode
 
     def get_sticker(self, path: str, size: tuple = ()) -> Image.Image:
@@ -97,11 +83,6 @@ if __name__ == "__main__":
         alunos["Foto para o Cartão de Conquistas"] + "&export=download"
     )
 
-    # Create output folder if it doesn't exist
-    output_folder = "output_images"
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-
     # Process each student
     for email in alunos["E-mail"].unique():
         try:
@@ -117,9 +98,10 @@ if __name__ == "__main__":
             foto = alunos[alunos["E-mail"] == email][
                 "Foto para o Cartão de Conquistas"
             ].values[0]
-            contagem = alunos[alunos["E-mail"] == email][
-                "Contagem de palavras "
+            total_palavras = alunos[alunos["E-mail"] == email][
+                "TOTAL DE PALAVRAS"
             ].values[0]
+            flg_atividade_1 = alunos[alunos["E-mail"] == email]["Atividade 1"].values[0]
 
             # Download the photo
             response = requests.get(foto)
@@ -144,7 +126,10 @@ if __name__ == "__main__":
             circular_image.paste(image, (0, 0), mask=mask)
 
             # Get background
-            background = ImageCreation().get_background()
+            if flg_atividade_1 == "Sim":
+                background = ImageCreation().get_background("semana2_completo.jpeg")
+            if flg_atividade_1 == "Não":
+                background = ImageCreation().get_background("semana2_incompleto.jpeg")
 
             # Paste the circular image onto the background
             background.paste(circular_image, (20, 80), circular_image)
@@ -167,8 +152,9 @@ if __name__ == "__main__":
             )
 
             # Insert additional texts below the name
-            text_1 = "0 palavras escritas"
-            # text_2 = "Desafio iniciado"
+            text_1 = f"{total_palavras} palavras escritas"
+            if flg_atividade_1 == "Sim":
+                text_2 = "1 desafio concluído"
 
             # Adjust font size for the additional texts
             font_size_small = 40
@@ -176,10 +162,12 @@ if __name__ == "__main__":
 
             # Calculate positions for the additional texts
             text_1_bbox = draw.textbbox((0, 0), text_1, font=font_small)
-            # text_2_bbox = draw.textbbox((0, 0), text_2, font=font_small)
+            if flg_atividade_1 == "Sim":
+                text_2_bbox = draw.textbbox((0, 0), text_2, font=font_small)
 
             text_1_width = text_1_bbox[2] - text_1_bbox[0]
-            # text_2_width = text_2_bbox[2] - text_2_bbox[0]
+            if flg_atividade_1 == "Sim":
+                text_2_width = text_2_bbox[2] - text_2_bbox[0]
 
             # Insert additional text below the name
             background = ImageCreation().insert_text(
@@ -188,49 +176,57 @@ if __name__ == "__main__":
                 (background.width - text_1_width - 20, text_y + 70),
                 font_small,
             )
-            # background = ImageCreation().insert_text(
-            #     background,
-            #     text_2,
-            #     (background.width - text_2_width - 20, text_y + 110),
-            #     font_small,
-            # )
+            if flg_atividade_1 == "Sim":
+                background = ImageCreation().insert_text(
+                    background,
+                    text_2,
+                    (background.width - text_2_width - 20, text_y + 110),
+                    font_small,
+                )
 
             # Convert the image to RGB mode before saving as JPEG
             background = background.convert("RGB")
 
             # Save the final image
-            output_path = os.path.join(output_folder, f"{nome}.jpeg")
+            output_path = rf"semana2/{nome}.jpeg"
             background.save(output_path, format="JPEG")
-            print(f"Image saved for {nome}: {output_path}")
-
-            # Send mail
-            html = f"""
-            <p>
-                {nome_completo},
-                <br>
-                <br>
-                    Segue seu card do Lateliê do dia 02/12/2024!
-                <br>
-                    Caso publique no seu story, não esqueça de nos marcar (@lalivro)!
-                <br>
-                <br>
-                    Atenciosamente,
-                <br>
-                    Equipe Lateliê
-            </p>
-            """
-
-            conexao.send(
-                subject=f"Card Lateliê - 02/12/2024",
-                html=html,
-                email="larissabr@gmail.com",
-                cc="anajspacheco@gmail.com, leticia.rodrigues@investsmart.com.br",
-                caminho=rf"output_images/{nome}.jpeg",
-                filename=rf"output_images/{nome}.jpeg",
-            )
+            # print(f"Image saved for {nome}: {output_path}")
 
         except Exception as err:
-            print(err)
+            print(nome, err)
+
+            # html = f"""
+            # Oi, {nome_completo}!
+            # <br>
+            # <br>
+            # Estamos muito animadas em ter você no Lateliê de Verão e, para celebrar sua chegada, aqui vai o seu primeiro emblema de conquistas! 🎉
+            # <br>
+            # <br>
+            # Ah, e já fica o spoiler: os outros emblemas também podem ficar coloridos, hein?! É só realizar cada atividade até a data combinada. Bora fazer história nesse Lateliê?
+            # <br>
+            # <br>
+            # 🌈 Segue o seu card do dia 02/12/2024!
+            # <br>
+            # Se postar nos stories, marca a gente lá em @lalivro. Vamos adorar compartilhar esse momento com você!
+            # <br>
+            # <br>
+            # Qualquer dúvida, é só chamar. Estamos sempre por perto!
+            # <br>
+            # Abraços,
+            # Equipe Lateliê
+            # """
+
+            # conexao.send(
+            #     subject="""Seu primeiro emblema do Lateliê de Verão chegou! 🌟""",
+            #     html=html,
+            #     email="larissabr@gmail.com",
+            #     cc="anajspacheco@gmail.com, leticia.rodrigues@investsmart.com.br",
+            #     caminho=rf"{nome}.jpeg",
+            #     filename=rf"{nome}.jpeg",
+            # )
+
+        # except Exception as err:
+        #     print(err)
 
     ############################
     # Com inserção de stickers

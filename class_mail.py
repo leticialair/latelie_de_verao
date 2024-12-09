@@ -14,7 +14,9 @@ class Mail:
         self.smtp_password = smtp_password
 
     def connection(self):
-        server = smtplib.SMTP(self.smtp_server, self.smtp_port)
+        server = smtplib.SMTP(
+            self.smtp_server, self.smtp_port, timeout=30
+        )  # Ajustando o timeout para 30 segundos
         server.starttls()
         server.login(self.smtp_username, self.smtp_password)
         return server
