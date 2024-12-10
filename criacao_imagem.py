@@ -154,7 +154,7 @@ if __name__ == "__main__":
             # Insert additional texts below the name
             text_1 = f"{total_palavras} palavras escritas"
             if flg_atividade_1 == "Sim":
-                text_2 = "1 desafio concluído"
+                text_2 = "1 desafio completo"
 
             # Adjust font size for the additional texts
             font_size_small = 40
