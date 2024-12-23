@@ -8,10 +8,12 @@ semana = "semana4"
 alunos = pd.read_excel("alunos.xlsx")
 
 # Removendo acentos e caracteres especiais
-alunos["Nome completo\n"] = alunos["Nome completo\n"].apply(lambda x: unidecode(x))
-alunos["Nome para o Cartão de Conquistas"] = alunos[
-    "Nome para o Cartão de Conquistas"
-].apply(lambda x: unidecode(x))
+alunos["Nome completo\n"] = (
+    alunos["Nome completo\n"].apply(lambda x: unidecode(x)).str.strip()
+)
+alunos["Nome para o Cartão de Conquistas"] = (
+    alunos["Nome para o Cartão de Conquistas"].apply(lambda x: unidecode(x)).str.strip()
+)
 
 # Padronizando colunas de flag
 atividade_columns = ["Atividade 1", "Atividade 2", "Atividade 3"]
