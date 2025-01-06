@@ -4,7 +4,7 @@ from class_image_creation import ImageCreation
 from PIL import Image, ImageDraw, ImageFont
 from unidecode import unidecode
 
-semana = "semana4"
+semana = "semana5"
 alunos = pd.read_excel("alunos.xlsx")
 
 # Removendo acentos e caracteres especiais
@@ -16,9 +16,17 @@ alunos["Nome para o Cartão de Conquistas"] = (
 )
 
 # Padronizando colunas de flag
-atividade_columns = ["Atividade 1", "Atividade 2", "Atividade 3"]
+atividade_columns = ["Atividade 1", "Atividade 2", "Atividade 3", "Atividade 4"]
 for column in atividade_columns:
-    alunos[column] = alunos[column].astype(str).str.upper()
+    alunos[column] = alunos[column].astype(str).str.upper().str.strip()
+
+# Criando uma coluna padronizada de flag
+alunos["flag"] = (
+    alunos["Atividade 1"]
+    + alunos["Atividade 2"]
+    + alunos["Atividade 3"]
+    + alunos["Atividade 4"]
+)
 
 # Convert "open" links to "uc" links for direct download
 alunos["Foto para o Cartão de Conquistas"] = alunos[
@@ -42,9 +50,18 @@ for email in alunos["E-mail"].unique():
         total_palavras = alunos[alunos["E-mail"] == email]["TOTAL DE PALAVRAS"].values[
             0
         ]
-        flg_atividade_1 = alunos[alunos["E-mail"] == email]["Atividade 1"].values[0]
-        flg_atividade_2 = alunos[alunos["E-mail"] == email]["Atividade 2"].values[0]
-        flg_atividade_3 = alunos[alunos["E-mail"] == email]["Atividade 3"].values[0]
+        flg = alunos[alunos["E-mail"] == email]["flag"].values[0]
+        flg_1 = alunos[alunos["E-mail"] == email]["Atividade 1"].values[0]
+        flg_2 = alunos[alunos["E-mail"] == email]["Atividade 2"].values[0]
+        flg_3 = alunos[alunos["E-mail"] == email]["Atividade 3"].values[0]
+        flg_4 = alunos[alunos["E-mail"] == email]["Atividade 4"].values[0]
+
+        list_flg = []
+        list_flg.append(flg_1)
+        list_flg.append(flg_2)
+        list_flg.append(flg_3)
+        list_flg.append(flg_4)
+        atividades_feitas = list_flg.count("SIM")
 
         # Download the photo
         response = requests.get(foto)
@@ -69,29 +86,44 @@ for email in alunos["E-mail"].unique():
         circular_image.paste(image, (0, 0), mask=mask)
 
         # Get background
-        if flg_atividade_1 == "SIM":
-            if flg_atividade_2 == "SIM":
-                if flg_atividade_3 == "SIM":
-                    background = ImageCreation().get_background(
-                        r"fundos/semana4_sim_sim_sim.jpeg"
-                    )
-                else:
-                    background = ImageCreation().get_background(
-                        r"fundos/semana4_sim_sim_nao.jpeg"
-                    )
-            else:
-                if flg_atividade_3 == "SIM":
-                    background = ImageCreation().get_background(
-                        r"fundos/semana4_sim_nao_sim.jpeg"
-                    )
-                else:
-                    background = ImageCreation().get_background(
-                        r"fundos/semana4_sim_nao_nao.jpeg"
-                    )
-
-        if flg_atividade_1 == "NÃO":
+        if flg == "SIMNÃONÃOSIM":
             background = ImageCreation().get_background(
-                r"fundos/semana4_nao_nao_nao.jpeg"
+                r"fundos/semana5_sim_nao_nao_sim.jpeg"
+            )
+
+        if flg == "SIMSIMSIMSIM":
+            background = ImageCreation().get_background(
+                r"fundos/semana5_sim_sim_sim_sim.jpeg"
+            )
+
+        if flg == "SIMSIMNÃONÃO":
+            background = ImageCreation().get_background(
+                r"fundos/semana5_sim_sim_nao_nao.jpeg"
+            )
+
+        if flg == "SIMSIMSIMNÃO":
+            background = ImageCreation().get_background(
+                r"fundos/semana5_sim_sim_sim_nao.jpeg"
+            )
+
+        if flg == "SIMSIMNÃOSIM":
+            background = ImageCreation().get_background(
+                r"fundos/semana5_sim_sim_nao_sim.jpeg"
+            )
+
+        if flg == "SIMNÃOSIMSIM":
+            background = ImageCreation().get_background(
+                r"fundos/semana5_sim_nao_sim_sim.jpeg"
+            )
+
+        if flg == "SIMNÃONÃONÃO":
+            background = ImageCreation().get_background(
+                r"fundos/semana5_sim_nao_nao_nao.jpeg"
+            )
+
+        if flg == "NÃONÃONÃONÃO":
+            background = ImageCreation().get_background(
+                r"fundos/semana5_nao_nao_nao_nao.jpeg"
             )
 
         # Paste the circular image onto the background
@@ -116,22 +148,8 @@ for email in alunos["E-mail"].unique():
 
         # Insert additional texts below the name
         text_1 = f"{total_palavras} palavras escritas"
-
-        if flg_atividade_1 == "SIM":
-            if flg_atividade_2 == "SIM":
-                if flg_atividade_3 == "SIM":
-                    text_2 = "3 desafios completos"
-                else:
-                    text_2 = "2 desafios completos"
-            else:
-                if flg_atividade_3 == "SIM":
-                    text_2 = "2 desafios completos"
-                else:
-                    text_2 = "1 desafio completo"
-
-        if flg_atividade_1 == "NÃO":
-            if flg_atividade_2 == "SIM":
-                text_2 = "1 desafio completo"
+        if atividades_feitas > 0:
+            text_2 = f"{atividades_feitas} desafios completos"
 
         # Adjust font size for the additional texts
         font_size_small = 40
@@ -139,19 +157,11 @@ for email in alunos["E-mail"].unique():
 
         # Calculate positions for the additional texts
         text_1_bbox = draw.textbbox((0, 0), text_1, font=font_small)
-        if (
-            flg_atividade_1 == "SIM"
-            or flg_atividade_2 == "SIM"
-            or flg_atividade_3 == "SIM"
-        ):
+        if atividades_feitas > 0:
             text_2_bbox = draw.textbbox((0, 0), text_2, font=font_small)
 
         text_1_width = text_1_bbox[2] - text_1_bbox[0]
-        if (
-            flg_atividade_1 == "SIM"
-            or flg_atividade_2 == "SIM"
-            or flg_atividade_3 == "SIM"
-        ):
+        if atividades_feitas > 0:
             text_2_width = text_2_bbox[2] - text_2_bbox[0]
 
         # Insert additional text below the name
@@ -161,11 +171,7 @@ for email in alunos["E-mail"].unique():
             (background.width - text_1_width - 20, text_y + 70),
             font_small,
         )
-        if (
-            flg_atividade_1 == "SIM"
-            or flg_atividade_2 == "SIM"
-            or flg_atividade_3 == "SIM"
-        ):
+        if atividades_feitas > 0:
             background = ImageCreation().insert_text(
                 background,
                 text_2,
